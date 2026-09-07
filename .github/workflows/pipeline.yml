@@ -1,0 +1,161 @@
+
+name: Tourism Project Pipeline
+
+
+# ---------------------------------------------------------
+# Trigger the pipeline whenever code is pushed to main
+# ---------------------------------------------------------
+
+on:
+  push:
+    branches:
+      - main
+
+  # Also allow manual execution from GitHub Actions
+  workflow_dispatch:
+
+
+# ---------------------------------------------------------
+# Pipeline jobs
+# ---------------------------------------------------------
+
+jobs:
+
+  # =======================================================
+  # 1. Register Dataset
+  # =======================================================
+
+  register-dataset:
+
+    name: Register Dataset
+
+    runs-on: ubuntu-latest
+
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Upload dataset to Hugging Face
+        run: |
+          python scripts/register_dataset.py
+
+
+  # =======================================================
+  # 2. Data Preparation
+  # =======================================================
+
+  data-prep:
+
+    name: Data Preparation
+
+    needs: register-dataset
+
+    runs-on: ubuntu-latest
+
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run data preparation
+        run: |
+          python scripts/data_preparation.py
+
+
+  # =======================================================
+  # 3. Model Training
+  # =======================================================
+
+  model-training:
+
+    name: Model Training
+
+    needs: data-prep
+
+    runs-on: ubuntu-latest
+
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run model training
+        run: |
+          python scripts/model_training.py
+
+
+  # =======================================================
+  # 4. Deployment Verification
+  # =======================================================
+
+  deploy-hosting:
+
+    name: Deployment Verification
+
+    needs:
+      - register-dataset
+      - data-prep
+      - model-training
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Verify deployment files
+        run: |
+          test -f deployment/app.py
+          test -f deployment/requirements.txt
+          test -f deployment/Dockerfile
+          test -f deployment/hosting.py
+          test -f deployment/README.md
+
+          echo "All deployment files are present."
+
+      - name: Confirm Streamlit deployment
+        run: |
+          echo "Model pipeline completed successfully."
+          echo "Streamlit Community Cloud uses this GitHub repository as the deployment source."
+          echo "A successful push to main automatically updates the deployed Streamlit application."
