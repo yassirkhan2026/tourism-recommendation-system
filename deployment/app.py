@@ -1,13 +1,16 @@
 
-import os
 import joblib
 import pandas as pd
 import streamlit as st
 from huggingface_hub import hf_hub_download
 
+
+# Hugging Face model details
 MODEL_REPO = "yassirkhan/tourism-recommendation-model"
 MODEL_FILE = "tourism_recommendation_model.pkl"
 
+
+# Load the trained model from Hugging Face Model Hub
 model_path = hf_hub_download(
     repo_id=MODEL_REPO,
     filename=MODEL_FILE,
@@ -16,32 +19,34 @@ model_path = hf_hub_download(
 
 model = joblib.load(model_path)
 
-st.set_page_config(
-    page_title="Tourism Package Recommendation",
-    page_icon="✈️",
-    layout="centered"
-)
 
-st.title("✈️ Wellness Tourism Package Recommendation")
+# Streamlit application
+st.title("Wellness Tourism Package Recommendation System")
 
 st.write(
-    "Enter customer details to predict whether the customer is likely "
-    "to purchase the wellness tourism package."
+    "Enter the customer details below to predict whether "
+    "the customer is likely to purchase the Wellness Tourism Package."
 )
 
-age = st.number_input("Age", min_value=18, max_value=100, value=35)
+
+# Customer inputs
+age = st.number_input("Age", min_value=18, max_value=100, value=30)
 
 type_of_contact = st.selectbox(
     "Type of Contact",
     ["Self Enquiry", "Company Invited"]
 )
 
-city_tier = st.selectbox("City Tier", [1, 2, 3])
+city_tier = st.selectbox(
+    "City Tier",
+    [1, 2, 3]
+)
 
 duration_of_pitch = st.number_input(
     "Duration of Pitch",
-    min_value=0.0,
-    value=15.0
+    min_value=1,
+    max_value=60,
+    value=15
 )
 
 occupation = st.selectbox(
@@ -55,16 +60,17 @@ gender = st.selectbox(
 )
 
 number_of_person_visiting = st.number_input(
-    "Number of Persons Visiting",
+    "Number of Person Visiting",
     min_value=1,
-    max_value=20,
-    value=3
+    max_value=10,
+    value=2
 )
 
 number_of_followups = st.number_input(
     "Number of Followups",
-    min_value=0.0,
-    value=3.0
+    min_value=0,
+    max_value=10,
+    value=3
 )
 
 product_pitched = st.selectbox(
@@ -72,11 +78,9 @@ product_pitched = st.selectbox(
     ["Basic", "Deluxe", "Standard", "Super Deluxe", "King"]
 )
 
-preferred_property_star = st.number_input(
+preferred_property_star = st.selectbox(
     "Preferred Property Star",
-    min_value=1.0,
-    max_value=5.0,
-    value=3.0
+    [3, 4, 5]
 )
 
 marital_status = st.selectbox(
@@ -86,8 +90,9 @@ marital_status = st.selectbox(
 
 number_of_trips = st.number_input(
     "Number of Trips",
-    min_value=0.0,
-    value=3.0
+    min_value=0,
+    max_value=30,
+    value=3
 )
 
 passport = st.selectbox(
@@ -95,11 +100,9 @@ passport = st.selectbox(
     [0, 1]
 )
 
-pitch_satisfaction_score = st.number_input(
+pitch_satisfaction_score = st.selectbox(
     "Pitch Satisfaction Score",
-    min_value=1,
-    max_value=5,
-    value=3
+    [1, 2, 3, 4, 5]
 )
 
 own_car = st.selectbox(
@@ -109,8 +112,9 @@ own_car = st.selectbox(
 
 number_of_children_visiting = st.number_input(
     "Number of Children Visiting",
-    min_value=0.0,
-    value=0.0
+    min_value=0,
+    max_value=10,
+    value=1
 )
 
 designation = st.selectbox(
@@ -120,12 +124,16 @@ designation = st.selectbox(
 
 monthly_income = st.number_input(
     "Monthly Income",
-    min_value=0.0,
-    value=25000.0
+    min_value=0,
+    max_value=1000000,
+    value=25000
 )
 
-if st.button("Predict Purchase"):
 
+# Make prediction
+if st.button("Predict Purchase Decision"):
+
+    # Store the user inputs in a dataframe
     input_data = pd.DataFrame({
         "Age": [age],
         "TypeofContact": [type_of_contact],
@@ -147,6 +155,7 @@ if st.button("Predict Purchase"):
         "MonthlyIncome": [monthly_income]
     })
 
+    # Generate prediction
     prediction = model.predict(input_data)[0]
 
     if prediction == 1:
