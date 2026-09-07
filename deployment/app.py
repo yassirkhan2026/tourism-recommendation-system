@@ -11,7 +11,7 @@ MODEL_FILE = "tourism_recommendation_model.pkl"
 model_path = hf_hub_download(
     repo_id=MODEL_REPO,
     filename=MODEL_FILE,
-    token=os.environ.get("HF_TOKEN")
+    token=st.secrets["HF_TOKEN"]
 )
 
 model = joblib.load(model_path)
